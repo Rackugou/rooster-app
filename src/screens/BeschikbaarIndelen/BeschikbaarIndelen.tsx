@@ -72,9 +72,10 @@ export const BeschikbaarIndelen = (): JSX.Element => {
   }, [canEditMonth]);
 
   const handleMaxTimesChange = useCallback((weekId: number, times: number) => {
+    if (!canEditMonth) return;
     setSelectedMaxTimes((prev) => ({ ...prev, [weekId]: times }));
     setOpenMaxTimesDropdown(null);
-  }, []);
+  }, [canEditMonth]);
 
   const generateWeeks = (date: Date): Week[] => {
     const year = date.getFullYear();
