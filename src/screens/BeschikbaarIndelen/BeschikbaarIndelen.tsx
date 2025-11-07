@@ -359,9 +359,16 @@ export const BeschikbaarIndelen = (): JSX.Element => {
             />
           </Button>
 
-          <h2 className="[font-family:'Source_Sans_Pro',Helvetica] font-semibold text-[#003883] text-2xl tracking-[0] leading-[normal] min-w-[200px] text-center">
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </h2>
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="[font-family:'Source_Sans_Pro',Helvetica] font-semibold text-[#003883] text-2xl tracking-[0] leading-[normal] min-w-[200px] text-center">
+              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </h2>
+            {!canEditMonth && (
+              <p className="text-sm text-gray-500 [font-family:'Source_Sans_Pro',Helvetica]">
+                Deze maand is gesloten
+              </p>
+            )}
+          </div>
 
           <Button 
             variant="ghost" 
