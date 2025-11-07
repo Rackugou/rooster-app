@@ -80,7 +80,7 @@ export const LogIn = (): JSX.Element => {
         </div>
       </div>
 
-      <Card className="w-[334px] md:w-[483px] max-w-[90%] bg-white shadow-[0px_4px_4px_5px_#00000040] relative z-10">
+      <Card className="w-[334px] md:w-[483px] max-w-[90%] bg-white shadow-[0px_4px_4px_5px_#00000040] translate-y-[-1rem] animate-fade-in [--animation-delay:200ms] relative z-10" style={{ animation: 'fade-in 1s var(--animation-delay, 0s) ease forwards' }}>
         <CardContent className="p-0">
           <form onSubmit={handleLogin} className="relative pt-[18px] pb-[25px] px-[18px] md:py-[18px] md:px-[26px]">
             <h1 className="[font-family:'Roboto_Condensed',Helvetica] text-[#003883] text-[32px] md:text-[40px] font-semibold tracking-[0] leading-[normal] text-center mb-[31px]">
@@ -93,7 +93,7 @@ export const LogIn = (): JSX.Element => {
               </p>
             )}
 
-            <div className="space-y-[49px] md:space-y-6">
+            <div className="space-y-[49px] md:space-y-6" style={{ animation: 'fade-in 1s 400ms ease forwards' }}>
               <div className="space-y-[10px] md:space-y-[2px]">
                 <Label
                   htmlFor="email"
