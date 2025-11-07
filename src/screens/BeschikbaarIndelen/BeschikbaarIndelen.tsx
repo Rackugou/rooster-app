@@ -429,8 +429,9 @@ export const BeschikbaarIndelen = (): JSX.Element => {
 
                 <div className="relative w-[310px] h-[62px] shrink-0">
                   <button
-                    className="absolute top-0 left-0 w-[310px] h-[62px] bg-[#ee7d11] rounded-sm flex items-center justify-between px-4 cursor-pointer"
-                    onClick={() => setOpenMaxTimesDropdown(openMaxTimesDropdown === week.id ? null : week.id)}
+                    className={`absolute top-0 left-0 w-[310px] h-[62px] ${canEditMonth ? 'bg-[#ee7d11]' : 'bg-gray-400'} rounded-sm flex items-center justify-between px-4 ${canEditMonth ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+                    onClick={() => canEditMonth && setOpenMaxTimesDropdown(openMaxTimesDropdown === week.id ? null : week.id)}
+                    disabled={!canEditMonth}
                   >
                     <span className="[font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl tracking-[0] leading-[21.6px] whitespace-nowrap">
                       Maximaal {selectedMaxTimes[week.id] || 2} keer
@@ -441,7 +442,7 @@ export const BeschikbaarIndelen = (): JSX.Element => {
                       src="https://c.animaapp.com/mhnzg7jrz7FVdC/img/polygon-7.svg"
                     />
                   </button>
-                  {openMaxTimesDropdown === week.id && (
+                  {openMaxTimesDropdown === week.id && canEditMonth && (
                     <div className="absolute top-[62px] left-0 z-10 bg-white shadow-md rounded-sm w-[310px] overflow-hidden">
                       {[1, 2, 3, 4, 5].map((times, index) => (
                         <button
