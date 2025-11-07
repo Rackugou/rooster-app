@@ -162,7 +162,7 @@ export const LogIn = (): JSX.Element => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-10 bg-[#ee7d11] hover:bg-[#d66f0f] rounded-[20.08px] mt-[46px] [font-family:'Source_Sans_Pro',Helvetica] text-white text-xl font-semibold tracking-[0] leading-[normal] translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:600ms]">
+            <Button type="submit" className="w-full h-10 bg-[#ee7d11] hover:bg-[#d66f0f] rounded-[20.08px] mt-[46px] [font-family:'Source_Sans_Pro',Helvetica] text-white text-xl font-semibold tracking-[0] leading-[normal]">
               Log in
             </Button>
           </form>
