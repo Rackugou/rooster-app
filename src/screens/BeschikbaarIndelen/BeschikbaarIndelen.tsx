@@ -52,10 +52,24 @@ export const BeschikbaarIndelen = (): JSX.Element => {
     return <></>;
   }
 
+  const isMonthPast = (): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    monthEnd.setHours(23, 59, 59, 999);
+
+    return monthEnd < today;
+  };
+
+  const canEditMonth = !isMonthPast();
+
   const handleAvailabilityChange = useCallback((dayKey: string, option: AvailabilityOption) => {
+    if (!canEditMonth) return;
     setSelectedAvailability((prev) => ({ ...prev, [dayKey]: option }));
     setOpenDropdown(null);
-  }, []);
+  }, [canEditMonth]);
 
   const handleMaxTimesChange = useCallback((weekId: number, times: number) => {
     setSelectedMaxTimes((prev) => ({ ...prev, [weekId]: times }));
