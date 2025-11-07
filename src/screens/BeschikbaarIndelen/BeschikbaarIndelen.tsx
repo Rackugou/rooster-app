@@ -391,20 +391,21 @@ export const BeschikbaarIndelen = (): JSX.Element => {
 
                   <div className="relative w-[64px] h-[62px] shrink-0">
                     <button
-                      className={`absolute top-px left-0 w-[64px] h-[62px] ${selectedAvailability[`${week.id}-${dayIndex}`]?.bgColor || 'bg-[#52a40b]'} rounded-sm shrink-0 flex items-center cursor-pointer`}
-                      onClick={() => setOpenDropdown(openDropdown === `${week.id}-${dayIndex}` ? null : `${week.id}-${dayIndex}`)}
+                      className={`absolute top-px left-0 w-[64px] h-[62px] ${selectedAvailability[`${week.id}-${dayIndex}`]?.bgColor || 'bg-[#52a40b]'} rounded-sm shrink-0 flex items-center ${canEditMonth ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+                      onClick={() => canEditMonth && setOpenDropdown(openDropdown === `${week.id}-${dayIndex}` ? null : `${week.id}-${dayIndex}`)}
+                      disabled={!canEditMonth}
                     >
                       <span className={`[font-family:'Source_Sans_Pro',Helvetica] font-semibold ${selectedAvailability[`${week.id}-${dayIndex}`]?.textColor || 'text-white'} text-2xl text-center tracking-[0] leading-[21.6px] whitespace-nowrap w-[46px]`}>
                         {selectedAvailability[`${week.id}-${dayIndex}`]?.label || 'A'}
                       </span>
-                      <div className="absolute top-0 left-[46px] w-[18px] h-[62px] bg-[#ee7d11] rounded-[0px_2px_2px_0px]" />
+                      <div className={`absolute top-0 left-[46px] w-[18px] h-[62px] ${canEditMonth ? 'bg-[#ee7d11]' : 'bg-gray-400'} rounded-[0px_2px_2px_0px]`} />
                       <img
                         className={`absolute top-[27px] left-[49px] w-3 h-2.5 transition-transform duration-200 ${openDropdown === `${week.id}-${dayIndex}` ? 'rotate-180' : ''}`}
                         alt="Dropdown"
                         src="https://c.animaapp.com/mhnzg7jrz7FVdC/img/polygon-5.svg"
                       />
                     </button>
-                    {openDropdown === `${week.id}-${dayIndex}` && (
+                    {openDropdown === `${week.id}-${dayIndex}` && canEditMonth && (
                       <div className="absolute top-[62px] left-0 z-10 bg-white shadow-md rounded-sm w-[64px] overflow-hidden">
                         {availabilityOptions.map((option, optIndex) => (
                           <button
