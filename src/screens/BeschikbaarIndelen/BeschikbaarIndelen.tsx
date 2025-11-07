@@ -468,9 +468,10 @@ export const BeschikbaarIndelen = (): JSX.Element => {
 
           <Button
             onClick={handleSubmitAvailability}
-            className="w-[310px] h-[62px] bg-[#52a40b] hover:bg-[#52a40b]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]"
+            disabled={!canEditMonth}
+            className={`w-[310px] h-[62px] ${canEditMonth ? 'bg-[#52a40b] hover:bg-[#52a40b]/90' : 'bg-gray-400 cursor-not-allowed opacity-60'} rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]`}
           >
-            Beschikbaarheid inleveren
+            {canEditMonth ? 'Beschikbaarheid inleveren' : 'Deze maand is gesloten'}
           </Button>
         </div>
       </main>
