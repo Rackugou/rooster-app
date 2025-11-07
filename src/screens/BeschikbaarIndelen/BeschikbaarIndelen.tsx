@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { useAuth } from "../../contexts/AuthContext";
-import { saveEmployeeAvailability, EmployeeAvailability, AvailabilityEntry, WeeklyMaxTimes } from "../../lib/database";
+import { saveEmployeeAvailability, EmployeeAvailability, AvailabilityEntry, WeeklyMaxTimes, saveComment } from "../../lib/database";
 
 interface AvailabilityOption {
   label: string;
@@ -46,6 +46,8 @@ export const BeschikbaarIndelen = (): JSX.Element => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [selectedMaxTimes, setSelectedMaxTimes] = useState<{ [key: number]: number }>({});
   const [openMaxTimesDropdown, setOpenMaxTimesDropdown] = useState<number | null>(null);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
 
   if (!user) {
     navigate('/');
@@ -208,6 +210,28 @@ export const BeschikbaarIndelen = (): JSX.Element => {
 
     saveEmployeeAvailability(dataToSave);
     alert("Beschikbaarheid succesvol ingeleverd!");
+  };
+
+  const handleSubmitComment = () => {
+    if (!commentText.trim()) {
+      alert("Vul een opmerking in");
+      return;
+    }
+
+    const today = new Date();
+    const dateString = today.toISOString().split('T')[0];
+
+    saveComment({
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      comment: commentText,
+      date: dateString,
+    });
+
+    setCommentText("");
+    setIsCommentModalOpen(false);
+    alert("Opmerking succesvol verzonden!");
   };
 
   return (
@@ -469,7 +493,10 @@ export const BeschikbaarIndelen = (): JSX.Element => {
         </div>
 
         <div className="flex justify-between mt-[9px]" style={{ width: `${weeks[0]?.days.length * 64 + (weeks[0]?.days.length - 1) * 10 + 10 + 310}px` }}>
-          <Button className="w-[278px] h-[62px] bg-[#ee7d11] hover:bg-[#ee7d11]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]">
+          <Button
+            onClick={() => setIsCommentModalOpen(true)}
+            className="w-[278px] h-[62px] bg-[#ee7d11] hover:bg-[#ee7d11]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]"
+          >
             Opmerking meegeven
           </Button>
 
@@ -482,6 +509,60 @@ export const BeschikbaarIndelen = (): JSX.Element => {
           </Button>
         </div>
       </main>
+
+      {/* Comment Modal */}
+      {isCommentModalOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40 z-40"
+            onClick={() => setIsCommentModalOpen(false)}
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div
+              className="bg-white rounded-sm shadow-lg w-[592px] max-w-[90%] pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="relative pt-2 pb-4 px-4">
+                <h2 className="text-center [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-[#003883] text-2xl leading-[90%]">
+                  Opmerking meegeven
+                </h2>
+                <button
+                  onClick={() => setIsCommentModalOpen(false)}
+                  className="absolute top-3 right-4 text-[#4d526f] hover:text-[#003883] transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.25 4.75L4.75 11.25M4.75 4.75L11.25 11.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Text Area */}
+              <div className="px-9 pb-4">
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Typ hier..."
+                  className="w-full h-[166px] rounded-lg border border-[#ee7d11] px-3 py-2 [font-family:'Source_Sans_Pro',Helvetica] text-[#4d526f] text-[15px] resize-none focus:outline-none focus:ring-2 focus:ring-[#ee7d11] focus:border-transparent"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div className="px-9 pb-6">
+                <Button
+                  onClick={handleSubmitComment}
+                  className="w-[227px] h-[42px] bg-[#ee7d11] hover:bg-[#ee7d11]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-xl text-center leading-[90%]"
+                >
+                  Verstuur
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
