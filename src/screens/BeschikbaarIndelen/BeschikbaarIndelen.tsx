@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { useAuth } from "../../contexts/AuthContext";
-import { saveEmployeeAvailability, EmployeeAvailability, AvailabilityEntry, WeeklyMaxTimes } from "../../lib/database";
+import { saveEmployeeAvailability, EmployeeAvailability, AvailabilityEntry, WeeklyMaxTimes, saveComment } from "../../lib/database";
 
 interface AvailabilityOption {
   label: string;
@@ -46,21 +46,38 @@ export const BeschikbaarIndelen = (): JSX.Element => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [selectedMaxTimes, setSelectedMaxTimes] = useState<{ [key: number]: number }>({});
   const [openMaxTimesDropdown, setOpenMaxTimesDropdown] = useState<number | null>(null);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
 
   if (!user) {
     navigate('/');
     return <></>;
   }
 
+  const isMonthPast = (): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    monthEnd.setHours(23, 59, 59, 999);
+
+    return monthEnd < today;
+  };
+
+  const canEditMonth = !isMonthPast();
+
   const handleAvailabilityChange = useCallback((dayKey: string, option: AvailabilityOption) => {
+    if (!canEditMonth) return;
     setSelectedAvailability((prev) => ({ ...prev, [dayKey]: option }));
     setOpenDropdown(null);
-  }, []);
+  }, [canEditMonth]);
 
   const handleMaxTimesChange = useCallback((weekId: number, times: number) => {
+    if (!canEditMonth) return;
     setSelectedMaxTimes((prev) => ({ ...prev, [weekId]: times }));
     setOpenMaxTimesDropdown(null);
-  }, []);
+  }, [canEditMonth]);
 
   const generateWeeks = (date: Date): Week[] => {
     const year = date.getFullYear();
@@ -193,6 +210,28 @@ export const BeschikbaarIndelen = (): JSX.Element => {
 
     saveEmployeeAvailability(dataToSave);
     alert("Beschikbaarheid succesvol ingeleverd!");
+  };
+
+  const handleSubmitComment = () => {
+    if (!commentText.trim()) {
+      alert("Vul een opmerking in");
+      return;
+    }
+
+    const today = new Date();
+    const dateString = today.toISOString().split('T')[0];
+
+    saveComment({
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      comment: commentText,
+      date: dateString,
+    });
+
+    setCommentText("");
+    setIsCommentModalOpen(false);
+    alert("Opmerking succesvol verzonden!");
   };
 
   return (
@@ -344,9 +383,16 @@ export const BeschikbaarIndelen = (): JSX.Element => {
             />
           </Button>
 
-          <h2 className="[font-family:'Source_Sans_Pro',Helvetica] font-semibold text-[#003883] text-2xl tracking-[0] leading-[normal] min-w-[200px] text-center">
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </h2>
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="[font-family:'Source_Sans_Pro',Helvetica] font-semibold text-[#003883] text-2xl tracking-[0] leading-[normal] min-w-[200px] text-center">
+              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </h2>
+            {!canEditMonth && (
+              <p className="text-sm text-gray-500 [font-family:'Source_Sans_Pro',Helvetica]">
+                Deze maand is gesloten
+              </p>
+            )}
+          </div>
 
           <Button 
             variant="ghost" 
@@ -376,20 +422,21 @@ export const BeschikbaarIndelen = (): JSX.Element => {
 
                   <div className="relative w-[64px] h-[62px] shrink-0">
                     <button
-                      className={`absolute top-px left-0 w-[64px] h-[62px] ${selectedAvailability[`${week.id}-${dayIndex}`]?.bgColor || 'bg-[#52a40b]'} rounded-sm shrink-0 flex items-center cursor-pointer`}
-                      onClick={() => setOpenDropdown(openDropdown === `${week.id}-${dayIndex}` ? null : `${week.id}-${dayIndex}`)}
+                      className={`absolute top-px left-0 w-[64px] h-[62px] ${selectedAvailability[`${week.id}-${dayIndex}`]?.bgColor || 'bg-[#52a40b]'} rounded-sm shrink-0 flex items-center ${canEditMonth ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+                      onClick={() => canEditMonth && setOpenDropdown(openDropdown === `${week.id}-${dayIndex}` ? null : `${week.id}-${dayIndex}`)}
+                      disabled={!canEditMonth}
                     >
                       <span className={`[font-family:'Source_Sans_Pro',Helvetica] font-semibold ${selectedAvailability[`${week.id}-${dayIndex}`]?.textColor || 'text-white'} text-2xl text-center tracking-[0] leading-[21.6px] whitespace-nowrap w-[46px]`}>
                         {selectedAvailability[`${week.id}-${dayIndex}`]?.label || 'A'}
                       </span>
-                      <div className="absolute top-0 left-[46px] w-[18px] h-[62px] bg-[#ee7d11] rounded-[0px_2px_2px_0px]" />
+                      <div className={`absolute top-0 left-[46px] w-[18px] h-[62px] ${canEditMonth ? 'bg-[#ee7d11]' : 'bg-gray-400'} rounded-[0px_2px_2px_0px]`} />
                       <img
                         className={`absolute top-[27px] left-[49px] w-3 h-2.5 transition-transform duration-200 ${openDropdown === `${week.id}-${dayIndex}` ? 'rotate-180' : ''}`}
                         alt="Dropdown"
                         src="https://c.animaapp.com/mhnzg7jrz7FVdC/img/polygon-5.svg"
                       />
                     </button>
-                    {openDropdown === `${week.id}-${dayIndex}` && (
+                    {openDropdown === `${week.id}-${dayIndex}` && canEditMonth && (
                       <div className="absolute top-[62px] left-0 z-10 bg-white shadow-md rounded-sm w-[64px] overflow-hidden">
                         {availabilityOptions.map((option, optIndex) => (
                           <button
@@ -413,8 +460,9 @@ export const BeschikbaarIndelen = (): JSX.Element => {
 
                 <div className="relative w-[310px] h-[62px] shrink-0">
                   <button
-                    className="absolute top-0 left-0 w-[310px] h-[62px] bg-[#ee7d11] rounded-sm flex items-center justify-between px-4 cursor-pointer"
-                    onClick={() => setOpenMaxTimesDropdown(openMaxTimesDropdown === week.id ? null : week.id)}
+                    className={`absolute top-0 left-0 w-[310px] h-[62px] ${canEditMonth ? 'bg-[#ee7d11]' : 'bg-gray-400'} rounded-sm flex items-center justify-between px-4 ${canEditMonth ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+                    onClick={() => canEditMonth && setOpenMaxTimesDropdown(openMaxTimesDropdown === week.id ? null : week.id)}
+                    disabled={!canEditMonth}
                   >
                     <span className="[font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl tracking-[0] leading-[21.6px] whitespace-nowrap">
                       Maximaal {selectedMaxTimes[week.id] || 2} keer
@@ -425,7 +473,7 @@ export const BeschikbaarIndelen = (): JSX.Element => {
                       src="https://c.animaapp.com/mhnzg7jrz7FVdC/img/polygon-7.svg"
                     />
                   </button>
-                  {openMaxTimesDropdown === week.id && (
+                  {openMaxTimesDropdown === week.id && canEditMonth && (
                     <div className="absolute top-[62px] left-0 z-10 bg-white shadow-md rounded-sm w-[310px] overflow-hidden">
                       {[1, 2, 3, 4, 5].map((times, index) => (
                         <button
@@ -445,18 +493,76 @@ export const BeschikbaarIndelen = (): JSX.Element => {
         </div>
 
         <div className="flex justify-between mt-[9px]" style={{ width: `${weeks[0]?.days.length * 64 + (weeks[0]?.days.length - 1) * 10 + 10 + 310}px` }}>
-          <Button className="w-[278px] h-[62px] bg-[#ee7d11] hover:bg-[#ee7d11]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]">
+          <Button
+            onClick={() => setIsCommentModalOpen(true)}
+            className="w-[278px] h-[62px] bg-[#ee7d11] hover:bg-[#ee7d11]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]"
+          >
             Opmerking meegeven
           </Button>
 
           <Button
             onClick={handleSubmitAvailability}
-            className="w-[310px] h-[62px] bg-[#52a40b] hover:bg-[#52a40b]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]"
+            disabled={!canEditMonth}
+            className={`w-[310px] h-[62px] ${canEditMonth ? 'bg-[#52a40b] hover:bg-[#52a40b]/90' : 'bg-gray-400 cursor-not-allowed opacity-60'} rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-2xl text-center tracking-[0] leading-[21.6px]`}
           >
-            Beschikbaarheid inleveren
+            {canEditMonth ? 'Beschikbaarheid inleveren' : 'Deze maand is gesloten'}
           </Button>
         </div>
       </main>
+
+      {/* Comment Modal */}
+      {isCommentModalOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40 z-40"
+            onClick={() => setIsCommentModalOpen(false)}
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div
+              className="bg-white rounded-sm shadow-lg w-[592px] max-w-[90%] pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="relative pt-2 pb-4 px-4">
+                <h2 className="text-center [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-[#003883] text-2xl leading-[90%]">
+                  Opmerking meegeven
+                </h2>
+                <button
+                  onClick={() => setIsCommentModalOpen(false)}
+                  className="absolute top-3 right-4 text-[#4d526f] hover:text-[#003883] transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.25 4.75L4.75 11.25M4.75 4.75L11.25 11.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Text Area */}
+              <div className="px-9 pb-4">
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Typ hier..."
+                  className="w-full h-[166px] rounded-lg border border-[#ee7d11] px-3 py-2 [font-family:'Source_Sans_Pro',Helvetica] text-[#4d526f] text-[15px] resize-none focus:outline-none focus:ring-2 focus:ring-[#ee7d11] focus:border-transparent"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div className="px-9 pb-6">
+                <Button
+                  onClick={handleSubmitComment}
+                  className="w-[227px] h-[42px] bg-[#ee7d11] hover:bg-[#ee7d11]/90 rounded-sm [font-family:'Source_Sans_Pro',Helvetica] font-semibold text-white text-xl text-center leading-[90%]"
+                >
+                  Verstuur
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

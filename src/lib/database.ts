@@ -26,6 +26,16 @@ export interface EmployeeAvailability {
   weeklyMaxTimes: WeeklyMaxTimes[];
 }
 
+export interface Comment {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  comment: string;
+  date: string; // YYYY-MM-DD
+  timestamp: number;
+}
+
 // Simple in-memory database
 const users: User[] = [
   {
@@ -47,6 +57,7 @@ const users: User[] = [
 ];
 
 const employeeAvailability: EmployeeAvailability[] = [];
+const comments: Comment[] = [];
 
 export const authenticateUser = (email: string, password: string): User | null => {
   const user = users.find(
@@ -83,4 +94,22 @@ export const getEmployeeAvailability = (userId: string, month: string): Employee
   return employeeAvailability.find(
     (entry) => entry.userId === userId && entry.month === month
   ) || null;
+};
+
+export const saveComment = (comment: Omit<Comment, 'id' | 'timestamp'>): Comment => {
+  const newComment: Comment = {
+    ...comment,
+    id: Date.now().toString(),
+    timestamp: Date.now(),
+  };
+  comments.push(newComment);
+  console.log("Saved Comment:", newComment);
+  return newComment;
+};
+
+export const getComments = (userId?: string): Comment[] => {
+  if (userId) {
+    return comments.filter((c) => c.userId === userId);
+  }
+  return comments;
 };
